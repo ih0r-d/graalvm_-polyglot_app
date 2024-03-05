@@ -12,7 +12,7 @@ public class Application {
     private static final String PYTHON_LANG_ID = "python";
 
     public static void main(String[] args) {
-        String pythonScriptPath = ""; // Update this with the full path to your Python script
+        String pythonScriptPath = "src/main/java/com/example/python/test.py"; // Update this with the full path to your Python script
 
         execPythonFileByPath(pythonScriptPath);
     }

@@ -1,4 +1,5 @@
 import subprocess
+import requests
 
 def install_requirements(requirements_file):
     with open(requirements_file, 'r') as f:
@@ -12,6 +13,8 @@ def install_requirements(requirements_file):
 
 
 def get_post():
+    import requests
+
     url = 'https://jsonplaceholder.typicode.com/posts/10'
     response = requests.get(url)
 
@@ -24,3 +27,5 @@ def get_post():
 
 if __name__ == "__main__":
     print("Message from separate py file")
+    install_requirements("src/main/java/com/example/python/requirements.txt")
+    get_post()
