@@ -1,23 +1,22 @@
 package com.example;
-
+import java.nio.file.*;
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.PolyglotAccess;
 import org.graalvm.polyglot.Value;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class Application {
     private static final String PYTHON_LANG_ID = "python";
 
     public static void main(String[] args) {
-        String pythonScriptPath = "src/main/java/com/example/python/test.py"; // Update this with the full path to your Python script
+        // Set PYTHONPATH to point to the directory containing the Python script and its dependencies
+        String pythonScriptPath = "src/main/java/com/example/python/test.py";
+        String pythonPath = "env/bin/python3";
+        String pythonPathCommand = "PYTHONPATH=" + pythonPath;
 
-        execPythonFileByPath(pythonScriptPath);
+        // Execute Python script
+        execPythonFileByPath(pythonScriptPath, pythonPathCommand);
     }
 
-    private static void execPythonFileByPath(String pythonScriptPath) {
+    private static void execPythonFileByPath(String pythonScriptPath, String pythonPathCommand) {
         try (Context context = Context.newBuilder()
                 .option("engine.WarnInterpreterOnly", "false")
                 .allowAllAccess(true)
@@ -25,7 +24,8 @@ public class Application {
             Path path = Paths.get(pythonScriptPath);
 
             if (Files.exists(path)) {
-                Value value = context.eval(PYTHON_LANG_ID, "exec(open('" + pythonScriptPath + "').read())");
+                // Execute Python script with specified PYTHONPATH
+                Value value = context.eval(PYTHON_LANG_ID, pythonPathCommand + " python3 " + pythonScriptPath);
                 if (value.isString()) {
                     String valueString = value.asString();
                     System.out.println("valueString = " + valueString);
