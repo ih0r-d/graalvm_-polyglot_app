@@ -1,41 +1,45 @@
 package com.example.utils;
 
 import lombok.experimental.UtilityClass;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Value;
 
-import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @UtilityClass
 public class PythonHelper {
-    private static void createVirtualEnvironment(String virtualEnvPath) throws IOException {
-        // Create virtual environment
-        ProcessBuilder pbCreateEnv = new ProcessBuilder("python", "-m", "venv", virtualEnvPath);
-        pbCreateEnv.inheritIO();
-        Process processCreateEnv = pbCreateEnv.start();
-        try {
-            processCreateEnv.waitFor();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
-        // Upgrade pip
-        ProcessBuilder pbUpgradePip = new ProcessBuilder(virtualEnvPath + "/bin/pip", "install", "--upgrade", "pip");
-        pbUpgradePip.inheritIO();
-        Process processUpgradePip = pbUpgradePip.start();
-        try {
-            processUpgradePip.waitFor();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    public static final String PYTHON_LANG_ID = "python";
 
-        // Source the virtual environment to activate it
-        ProcessBuilder pbSourceEnv = new ProcessBuilder("source", virtualEnvPath + "/bin/activate");
-        pbSourceEnv.inheritIO();
-        Process processSourceEnv = pbSourceEnv.start();
-        try {
-            processSourceEnv.waitFor();
-        } catch (InterruptedException e) {
+    public static void execPythonFileByPath(String pythonScriptPath) {
+        try (Context context = Context.newBuilder()
+                .option("engine.WarnInterpreterOnly", "false")
+                .allowAllAccess(true)
+                .build()) {
+            Path path = Paths.get(pythonScriptPath);
+
+            if (Files.exists(path)) {
+//                context.getBindings(PYTHON_LANG_ID)
+//                        .putMember("sys", context.eval(PYTHON_LANG_ID,
+//                                "import sys\nsys.path.append('" + en + "')"));
+                Value value = context.eval(PYTHON_LANG_ID, "exec(open('" + pythonScriptPath + "').read())");
+
+                if (value.isString()) {
+                    String valueString = value.asString();
+                    System.out.println("valueString = " + valueString);
+                } else {
+                    System.out.println("value = " + value);
+                }
+
+            } else {
+                System.out.println("File not found: " + pythonScriptPath);
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 
 }
