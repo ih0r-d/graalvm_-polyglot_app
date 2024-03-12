@@ -2,6 +2,7 @@ package com.example;
 
 import com.example.utils.PythonHelper;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 
 import java.nio.file.Files;
@@ -19,6 +20,8 @@ public class Application {
 
 
     public static void main(String[] args) {
+        System.setProperty("JVMCI_OPTIONS", "-XX:+EnableJVMCI");
+
         var rootPath = getProjectRoot();
         System.out.println(STR."Root directory of the project: \{rootPath}");
 
@@ -26,29 +29,41 @@ public class Application {
 
 //        execPythonFileByPath();
 
-        var pythonPath=STR."\{rootPath}/python/demo.py";
+        var out = "";
+        var pythonPath = STR."\{rootPath}/python/demo.py";
         try (Context context = Context.newBuilder()
                 .allowAllAccess(true)
                 .build()) {
+
 
             Path path = Paths.get(pythonPath);
 
             if (Files.exists(path)) {
                 var envPath = STR."\{rootPath}/env";
-                var pythonSourceCommands = List.of("source",STR."\{envPath}/bin/activate");
+                var pythonSourceCommands = List.of("source", STR."\{envPath}/bin/activate");
                 executePythonProcess(pythonSourceCommands);
 
+                Source source = Source
+                        .newBuilder(PYTHON_LANG_ID, path.toFile())
+                        .build();
+                context.eval(source);
+
+                Value bindings = context.getBindings(PYTHON_LANG_ID);
+                Value getPost = bindings.getMember("get_post");
+
+                Value getPostReport = getPost.execute();
 //                var envPath = STR."\{rootPath}/env";
-                context.getBindings(PYTHON_LANG_ID)
-                        .putMember("sys", context.eval(PYTHON_LANG_ID,
-                                STR."import sys\nsys.path.append('\{envPath}')"));
+//                context.getBindings(PYTHON_LANG_ID)
+//                        .putMember("sys", context.eval(PYTHON_LANG_ID,
+//                                STR."import sys\nsys.path.append('\{envPath}')"));
 //                // Execute Python script
-                Value result = context.eval(PYTHON_LANG_ID, STR."\{rootPath}/env/bin/python3 \{pythonPath}");
+//                Value result = context.eval(PYTHON_LANG_ID, STR."\{rootPath}/env/bin/python3 \{pythonPath}");
+//                Value result = context.eval(PYTHON_LANG_ID, STR."python \{pythonPath}");
 //                Value result = context.eval(PYTHON_LANG_ID, Files.readString(path));
 
                 // Retrieve output value from Python execution
-                String outputValue = result.getMember("get_post").execute().asString();
-                System.out.println("Output from Python: " + outputValue);
+//                String outputValue = result.getMember("get_post").execute().asString();
+                System.out.println("Output from Python: " + getPostReport);
             } else {
                 System.out.println("File not found: " + pythonPath);
             }
@@ -67,7 +82,7 @@ public class Application {
         var pythonEnvCommands = List.of("python3", "-m", "venv", envPath);
         executePythonProcess(pythonEnvCommands);
 
-        var pythonSourceCommands = List.of("source",STR."\{rootPath}/env/bin/activate");
+        var pythonSourceCommands = List.of("source", STR."\{rootPath}/env/bin/activate");
         executePythonProcess(pythonSourceCommands);
 
         var pipUpdateCommands = List.of(STR."\{envPath}/bin/pip", "install", "--upgrade", "pip");

@@ -1,17 +1,11 @@
 package com.example.utils;
 
 import lombok.experimental.UtilityClass;
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Value;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 
 @UtilityClass
@@ -60,9 +54,9 @@ public class ProcessHelper {
         return output.trim();
     }
 
-    private static String readProcessOutput(Process process) throws IOException {
+    public static String readProcessOutput(Process process) throws IOException {
         StringBuilder output = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+        try (var reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 output.append(line).append(System.lineSeparator());
